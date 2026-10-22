@@ -1,0 +1,79 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Card from '../../components/Card.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const rawResources = await getCollection('resources');
+  const rawNotes = await getCollection('notes');
+  const rawCourses = await getCollection('courses');
+
+  const allItems = [
+    ...rawResources.map(item => ({ type: 'resource' as const, slug: item.slug, data: item.data })),
+    ...rawNotes.map(item => ({ type: 'note' as const, slug: item.slug, data: item.data })),
+    ...rawCourses.map(item => ({ type: 'course' as const, slug: item.slug, data: item.data })),
+  ];
+
+  // Map of lowercase tag to original display tag & matching items
+  const tagMap = new Map<string, { displayTag: string; items: typeof allItems }>();
+
+  allItems.forEach(item => {
+    (item.data.tags || []).forEach(tag => {
+      const lower = tag.toLowerCase();
+      if (!tagMap.has(lower)) {
+        tagMap.set(lower, { displayTag: tag, items: [] });
+      }
+      tagMap.get(lower)!.items.push(item);
+    });
+  });
+
+  return Array.from(tagMap.entries()).map(([tagSlug, data]) => ({
+    params: { tag: tagSlug },
+    props: {
+      displayTag: data.displayTag,
+      items: data.items.sort((a, b) => b.data.date.getTime() - a.data.date.getTime()),
+    },
+  }));
+}
+
+const { displayTag, items } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<BaseLayout title={`Tag: #${displayTag}`} description={`All notes, resources, and courses tagged with #${displayTag}`}>
+  <div class="max-w-6xl mx-auto">
+    <a href={`${base}/`} class="text-sm font-medium text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1 mb-6">
+      &larr; Back to all content
+    </a>
+
+    <div class="mb-8">
+      <div class="inline-block px-3 py-1 rounded-full text-sm font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 mb-2">
+        #{displayTag}
+      </div>
+      <h1 class="text-3xl font-extrabold text-slate-900">
+        Tagged with "#{displayTag}"
+      </h1>
+      <p class="text-slate-600 mt-1">
+        Showing {items.length} {items.length === 1 ? 'entry' : 'entries'}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {items.map((item) => (
+        <Card
+          title={item.data.title}
+          description={item.data.description}
+          type={item.type}
+          slug={item.slug}
+          date={item.data.date}
+          tags={item.data.tags}
+          category={'category' in item.data ? item.data.category : undefined}
+          url={'url' in item.data ? item.data.url : undefined}
+          provider={'provider' in item.data ? item.data.provider : undefined}
+          status={'status' in item.data ? item.data.status : undefined}
+          rating={'rating' in item.data ? item.data.rating : undefined}
+        />
+      ))}
+    </div>
+  </div>
+</BaseLayout>

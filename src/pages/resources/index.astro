@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Card from '../../components/Card.astro';
+import { getCollection } from 'astro:content';
+
+const resources = (await getCollection('resources')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+---
+
+<BaseLayout title="Resources" description="Curated AI tools, papers, articles, and bookmarks with commentary.">
+  <div class="mb-8">
+    <h1 class="text-3xl font-extrabold text-slate-900">Curated AI Resources</h1>
+    <p class="text-slate-600 mt-2">Articles, papers, documentation, and tools with personal notes and takeaways.</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {resources.map((res) => (
+      <Card
+        title={res.data.title}
+        description={res.data.description}
+        type="resource"
+        slug={res.slug}
+        date={res.data.date}
+        tags={res.data.tags}
+        category={res.data.category}
+        url={res.data.url}
+        rating={res.data.rating}
+      />
+    ))}
+  </div>
+</BaseLayout>
