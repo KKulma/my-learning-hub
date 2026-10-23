@@ -2,6 +2,7 @@
 title: "Plan Agile with GitHub Projects and Azure Boards"
 description: "Plan and track Agile work with Azure Boards and GitHub integration."
 tags: ["agile"]
+url: "https://learn.microsoft.com/en-us/training/modules/plan-agile-github-projects-azure-boards/"
 order: 2
 ---
 

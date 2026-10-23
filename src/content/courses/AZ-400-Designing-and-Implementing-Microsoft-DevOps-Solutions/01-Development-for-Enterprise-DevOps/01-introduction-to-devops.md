@@ -2,6 +2,7 @@
 title: "Introduction to DevOps"
 description: "DevOps transformation, continuous delivery, monitoring, team structures, and shared goals."
 tags: ["devops", "ci", "observability"]
+url: "https://learn.microsoft.com/en-us/training/modules/introduction-to-devops/"
 order: 1
 ---
 

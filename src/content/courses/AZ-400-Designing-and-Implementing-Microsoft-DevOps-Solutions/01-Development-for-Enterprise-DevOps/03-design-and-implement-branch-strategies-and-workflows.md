@@ -2,6 +2,7 @@
 title: "Design and Implement Branch Strategies and Workflows"
 description: "Evaluate enterprise branching strategies using team size, release cadence, quality, and compliance needs."
 tags: ["Git", "Branching Strategies", "Workflows"]
+url: "https://learn.microsoft.com/en-us/training/modules/manage-git-branches-workflows/"
 order: 3
 ---
 

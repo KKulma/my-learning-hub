@@ -35,6 +35,7 @@ const courses = defineCollection({
     status: z.enum(['not-started', 'in-progress', 'completed']).default('in-progress'),
     tags: z.array(z.string()).default([]),
     date: z.coerce.date(),
+    url: z.url().optional(),
     certificateUrl: z.url().optional(),
   }),
 });
@@ -49,6 +50,7 @@ const courseNotes = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
+    url: z.url().optional(),
     order: z.number().optional(), // overrides the numeric filename prefix
     tags: z.array(z.string()).default([]),
   }),
