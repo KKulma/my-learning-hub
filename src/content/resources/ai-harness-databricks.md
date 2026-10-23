@@ -2,7 +2,7 @@
 title: "What is an AI Agent Harness?"
 description: "Simple intro to AI Agent Harness concept"
 url: "https://www.databricks.com/blog/ai-harness"
-tags: ["ai-agent", "notes"]
+tags: ["ai-agent", "sql"]
 category: "Study Notes"
 date: 2026-10-22
 ---
