@@ -2,10 +2,19 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Card from '../../components/Card.astro';
 import { getCollection } from 'astro:content';
+import { getCourseTrees } from '../../lib/courses';
 
+const trees = await getCourseTrees();
 const courses = (await getCollection('courses')).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime()
 );
+const metaFor = (id: string) => {
+  const tree = trees.get(id);
+  if (!tree || tree.chapters.length === 0) return undefined;
+  const c = tree.chapters.length;
+  const p = tree.pages.length;
+  return `${c} ${c === 1 ? 'chapter' : 'chapters'} · ${p} ${p === 1 ? 'page' : 'pages'}`;
+};
 ---
 
 <BaseLayout title="Courses" description="Course notes, modules, and certification preparation.">
@@ -20,11 +29,12 @@ const courses = (await getCollection('courses')).sort(
         title={course.data.title}
         description={course.data.description}
         type="course"
-        slug={course.slug}
+        slug={course.id}
         date={course.data.date}
         tags={course.data.tags}
         provider={course.data.provider}
         status={course.data.status}
+        meta={metaFor(course.id)}
       />
     ))}
   </div>

@@ -72,15 +72,109 @@ Write your notes, embed code blocks, formulas, or mermaid diagrams.
 import chromadb
 client = chromadb.Client()
 ```
-```
 
 ---
 
 ## 3. Adding a Course / Certificate (`src/content/courses/`)
 
-Use this to log courses you are taking or certificate preparation (e.g. AWS, GCP, DeepLearning.AI).
+Use this to log courses you are taking or certificate preparation (e.g. AWS, GCP, DeepLearning.AI). A course can be a **single file** (short courses) or a **folder with chapters and many pages of notes** (most courses).
 
-Create a new file, for example: `src/content/courses/aws-certified-ai-practitioner.md`:
+### Option A: Multi-chapter course (recommended for detailed notes)
+
+Use one folder per course, one subfolder per chapter, and one Markdown file per lecture or topic:
+
+```text
+src/content/courses/
+└── aws-ai-practitioner/
+    ├── index.md                         # Course overview + course metadata (required)
+    ├── 01-fundamentals-of-ai-ml/
+    │   ├── index.md                     # Chapter intro (optional)
+    │   ├── 01-ml-lifecycle.md
+    │   ├── 02-evaluation-metrics.md
+    │   └── images/
+    │       └── confusion-matrix.png
+    └── 02-generative-ai/
+        ├── 01-foundation-models.md
+        └── 02-bedrock-pricing.md
+```
+
+URLs follow the folders:
+
+```text
+/courses/aws-ai-practitioner                                          # overview + table of contents
+/courses/aws-ai-practitioner/01-fundamentals-of-ai-ml                 # chapter page
+/courses/aws-ai-practitioner/01-fundamentals-of-ai-ml/02-evaluation-metrics
+```
+
+**What you get automatically:**
+
+- `/courses` shows **one card per course**, with "N chapters · N pages".
+- The course page lists every chapter and page in a **table of contents**.
+- Every note page has **breadcrumbs**, a **sidebar** with all chapters (the current one is expanded), and **previous/next** buttons that continue from one chapter into the next.
+- Tags on individual note pages show up on the matching `/tags/<tag>` page.
+- **Ordering** comes from the numeric filename prefixes (`01-`, `02-`…). You never maintain a list by hand: to add a page, add a file.
+
+#### Course overview: `aws-ai-practitioner/index.md` (required)
+
+Holds the course metadata. The body is for the summary: why you're taking the course and your overall takeaways.
+
+```markdown
+---
+title: "AWS Certified AI Practitioner Prep"
+description: "Study notes and domain reviews for AIF-C01."
+provider: "AWS / Coursera"
+status: "in-progress" # "not-started" | "in-progress" | "completed"
+tags: ["AWS", "Certification", "Cloud"]
+date: 2026-10-22
+certificateUrl: "https://example.com/badge" # Optional, add once completed
+---
+
+Why I'm taking this course and my overall takeaways.
+```
+
+#### Chapter intro: `01-fundamentals-of-ai-ml/index.md` (optional)
+
+Without this file, the chapter title comes from the folder name (`01-fundamentals-of-ai-ml` → "Fundamentals Of Ai Ml"). Add it when you want a proper title, a description, or an intro paragraph.
+
+```markdown
+---
+title: "Fundamentals of AI and ML"
+description: "Domain 1: core ML concepts and the ML lifecycle."
+---
+
+Short chapter summary (optional).
+```
+
+#### Note pages: `01-fundamentals-of-ai-ml/02-evaluation-metrics.md`
+
+Only `title` is required:
+
+```markdown
+---
+title: "Evaluation Metrics"
+description: "Precision, recall, F1 and when to use each." # optional
+tags: ["Evaluation"]                                    # optional
+order: 2                                                # optional, overrides the filename prefix
+---
+
+## Confusion Matrix
+
+![Confusion matrix](./images/confusion-matrix.png)
+```
+
+#### Workflow for a new course
+
+1. Create `src/content/courses/<course-slug>/index.md` with the course metadata.
+2. Create one folder per chapter: `01-…`, `02-…`.
+3. Add one file per lecture or topic inside each chapter: `01-….md`, `02-….md`.
+4. As you progress, update `status` in the course `index.md`.
+5. Check it in `npm run dev`, then commit.
+
+> **Rules:** Keep to three levels (course → chapter → page). Every course folder needs an `index.md`, and the build fails with a clear message if one is missing. See `src/content/courses/example-course/` for a working example.
+
+### Option B: Single-file course
+
+For a short course, a single file is fine: `src/content/courses/aws-cloud-quest.md`, with the same frontmatter as the course `index.md` above and your notes in the body. You can convert it later by moving it to `aws-cloud-quest/index.md` and adding chapter folders. The URL stays the same. Example:
 
 ```markdown
 ---

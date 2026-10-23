@@ -1,73 +1,240 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TagPill from '../../components/TagPill.astro';
-import { getCollection } from 'astro:content';
+import CourseSidebar from '../../components/CourseSidebar.astro';
+import { render } from 'astro:content';
+import { getCourseTrees, type CourseTree, type CourseChapter, type CoursePage } from '../../lib/courses';
+
+type Props =
+  | { kind: 'course'; tree: CourseTree }
+  | { kind: 'chapter'; tree: CourseTree; chapter: CourseChapter }
+  | { kind: 'page'; tree: CourseTree; page: CoursePage };
 
 export async function getStaticPaths() {
-  const courses = await getCollection('courses');
-  return courses.map((entry) => ({
-    params: { slug: entry.slug },
-    props: { entry },
-  }));
+  const trees = await getCourseTrees();
+  return [...trees.values()].flatMap((tree) => [
+    { params: { slug: tree.course.id }, props: { kind: 'course' as const, tree } },
+    ...tree.chapters.map((chapter) => ({
+      params: { slug: chapter.id },
+      props: { kind: 'chapter' as const, tree, chapter },
+    })),
+    ...tree.pages.map((page) => ({
+      params: { slug: page.id },
+      props: { kind: 'page' as const, tree, page },
+    })),
+  ]);
 }
 
-const { entry } = Astro.props;
-const { Content } = await entry.render();
+const props = Astro.props as Props;
+const { tree } = props;
+const course = tree.course;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const formattedDate = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(entry.data.date);
+const href = (id: string) => `${base}/courses/${id}`;
+const formattedDate = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(course.data.date);
+
+// Content to render for this URL
+const entry =
+  props.kind === 'course' ? course : props.kind === 'chapter' ? props.chapter.intro : props.page.entry;
+const Content = entry ? (await render(entry)).Content : null;
+
+const chapter = props.kind === 'chapter' ? props.chapter : props.kind === 'page' ? props.page.chapter : undefined;
+const currentId = props.kind === 'course' ? course.id : props.kind === 'chapter' ? props.chapter.id : props.page.id;
+
+// Prev/next across the whole course, in reading order
+let prev: CoursePage | undefined;
+let next: CoursePage | undefined;
+if (props.kind === 'page') {
+  const i = tree.pages.findIndex((p) => p.id === props.page.id);
+  prev = tree.pages[i - 1];
+  next = tree.pages[i + 1];
+} else if (props.kind === 'chapter') {
+  next = props.chapter.pages[0];
+}
+
+const title = props.kind === 'page' ? props.page.title : props.kind === 'chapter' ? props.chapter.title : course.data.title;
+const description =
+  (props.kind === 'page' ? props.page.description : props.kind === 'chapter' ? props.chapter.description : undefined) ??
+  course.data.description;
+const pageTags = props.kind === 'page' ? props.page.entry.data.tags : [];
+const hasChapters = tree.chapters.length > 0;
 ---
 
-<BaseLayout title={entry.data.title} description={entry.data.description}>
-  <div class="max-w-3xl mx-auto">
-    <a href={`${base}/courses`} class="text-sm font-medium text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1 mb-6">
-      &larr; Back to all courses
-    </a>
+<BaseLayout title={props.kind === 'course' ? title : `${title} · ${course.data.title}`} description={description}>
+  {props.kind === 'course' ? (
+    <div class="max-w-3xl mx-auto">
+      <a href={`${base}/courses`} class="text-sm font-medium text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1 mb-6">
+        &larr; Back to all courses
+      </a>
 
-    <header class="mb-8 border-b border-slate-200 pb-6">
-      <div class="flex items-center gap-2 mb-3 text-xs">
-        <span class="px-2 py-0.5 rounded-md font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-          Course
-        </span>
-        <span class="text-slate-500 font-medium">via {entry.data.provider}</span>
-        <span class="capitalize px-2 py-0.5 bg-slate-100 rounded text-slate-600 ml-auto">
-          {entry.data.status.replace('-', ' ')}
-        </span>
-        <time class="text-slate-400">{formattedDate}</time>
-      </div>
-
-      <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-3">
-        {entry.data.title}
-      </h1>
-
-      <p class="text-lg text-slate-600 mb-4 leading-relaxed">
-        {entry.data.description}
-      </p>
-
-      {entry.data.tags.length > 0 && (
-        <div class="flex flex-wrap gap-1.5 mb-4">
-          {entry.data.tags.map(tag => (
-            <TagPill tag={tag} size="sm" />
-          ))}
+      <header class="mb-8 border-b border-slate-200 pb-6">
+        <div class="flex items-center gap-2 mb-3 text-xs">
+          <span class="px-2 py-0.5 rounded-md font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+            Course
+          </span>
+          <span class="text-slate-500 font-medium">via {course.data.provider}</span>
+          <span class="capitalize px-2 py-0.5 bg-slate-100 rounded text-slate-600 ml-auto">
+            {course.data.status.replace('-', ' ')}
+          </span>
+          <time class="text-slate-400">{formattedDate}</time>
         </div>
+
+        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-3">{course.data.title}</h1>
+        <p class="text-lg text-slate-600 mb-4 leading-relaxed">{course.data.description}</p>
+
+        {course.data.tags.length > 0 && (
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            {course.data.tags.map((tag) => <TagPill tag={tag} size="sm" />)}
+          </div>
+        )}
+
+        {course.data.certificateUrl && (
+          <a
+            href={course.data.certificateUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 transition shadow-sm"
+          >
+            <span>View Certificate</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        )}
+      </header>
+
+      {Content && (
+        <article class="prose prose-slate max-w-none prose-headings:font-bold prose-a:text-indigo-600 prose-pre:rounded-xl">
+          <Content />
+        </article>
       )}
 
-      {entry.data.certificateUrl && (
-        <a
-          href={entry.data.certificateUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 transition shadow-sm"
-        >
-          <span>View Certificate</span>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
-        </a>
+      {hasChapters && (
+        <section class="mt-10" aria-labelledby="toc-heading">
+          <div class="flex items-baseline justify-between mb-4">
+            <h2 id="toc-heading" class="text-xl font-bold text-slate-900">Contents</h2>
+            <span class="text-sm text-slate-500">{tree.chapters.length} chapters · {tree.pages.length} pages</span>
+          </div>
+          <ol class="flex flex-col gap-4">
+            {tree.chapters.map((ch) => (
+              <li class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                <a href={href(ch.id)} class="flex items-start gap-3 group">
+                  <span class="shrink-0 w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 font-bold flex items-center justify-center text-sm">
+                    {ch.number}
+                  </span>
+                  <span>
+                    <span class="block font-semibold text-slate-900 group-hover:text-indigo-600 transition">{ch.title}</span>
+                    {ch.description && <span class="block text-sm text-slate-500 mt-0.5">{ch.description}</span>}
+                  </span>
+                </a>
+                {ch.pages.length > 0 && (
+                  <ol class="mt-3 ml-11 flex flex-col gap-1 list-decimal list-inside text-sm text-slate-400">
+                    {ch.pages.map((p) => (
+                      <li>
+                        <a href={href(p.id)} class="text-slate-700 hover:text-indigo-600 hover:underline">{p.title}</a>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </li>
+            ))}
+          </ol>
+          {tree.pages[0] && (
+            <a
+              href={href(tree.pages[0].id)}
+              class="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700 transition shadow-sm"
+            >
+              Start reading &rarr;
+            </a>
+          )}
+        </section>
       )}
-    </header>
+    </div>
+  ) : (
+    <div class="max-w-6xl mx-auto">
+      <nav aria-label="Breadcrumb" class="text-sm mb-6 flex flex-wrap items-center gap-1.5 text-slate-400">
+        <a href={`${base}/courses`} class="text-indigo-600 hover:text-indigo-800">Courses</a>
+        <span>/</span>
+        <a href={href(course.id)} class="text-indigo-600 hover:text-indigo-800">{course.data.title}</a>
+        <span>/</span>
+        {props.kind === 'page' ? (
+          <>
+            <a href={href(chapter!.id)} class="text-indigo-600 hover:text-indigo-800">{chapter!.title}</a>
+            <span>/</span>
+            <span class="text-slate-700 font-medium">{title}</span>
+          </>
+        ) : (
+          <span class="text-slate-700 font-medium">{title}</span>
+        )}
+      </nav>
 
-    <article class="prose prose-slate max-w-none prose-headings:font-bold prose-a:text-indigo-600 prose-pre:rounded-xl">
-      <Content />
-    </article>
-  </div>
+      <div class="grid grid-cols-1 lg:grid-cols-[17rem_minmax(0,1fr)] gap-8 items-start">
+        <aside class="order-2 lg:order-1">
+          <CourseSidebar tree={tree} currentId={currentId} />
+        </aside>
+
+        <div class="order-1 lg:order-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-10">
+          <header class="mb-8 border-b border-slate-200 pb-6">
+            <p class="text-xs font-semibold uppercase tracking-wide text-purple-700 mb-2">
+              Chapter {chapter!.number}
+              {props.kind === 'page' && <span class="text-slate-400"> · {chapter!.title}</span>}
+            </p>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">{title}</h1>
+            {(props.kind === 'page' ? props.page.description : props.chapter.description) && (
+              <p class="text-lg text-slate-600 leading-relaxed">{description}</p>
+            )}
+            {pageTags.length > 0 && (
+              <div class="flex flex-wrap gap-1.5 mt-4">
+                {pageTags.map((tag) => <TagPill tag={tag} size="sm" />)}
+              </div>
+            )}
+          </header>
+
+          {Content && (
+            <article class="prose prose-slate max-w-none prose-headings:font-bold prose-a:text-indigo-600 prose-pre:rounded-xl">
+              <Content />
+            </article>
+          )}
+
+          {props.kind === 'chapter' && (
+            <ol class="mt-8 grid gap-3">
+              {props.chapter.pages.map((p, i) => (
+                <li>
+                  <a href={href(p.id)} class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 transition group">
+                    <span class="text-sm font-bold text-indigo-600 w-5">{i + 1}</span>
+                    <span>
+                      <span class="block font-semibold text-slate-900 group-hover:text-indigo-700">{p.title}</span>
+                      {p.description && <span class="block text-sm text-slate-500">{p.description}</span>}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          )}
+
+          {(prev || next) && (
+            <nav aria-label="Pagination" class="mt-10 pt-6 border-t border-slate-200 grid grid-cols-2 gap-4">
+              <div>
+                {prev && (
+                  <a href={href(prev.id)} class="block p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 transition">
+                    <span class="block text-xs text-slate-500">&larr; Previous</span>
+                    <span class="block font-semibold text-indigo-700">{prev.title}</span>
+                  </a>
+                )}
+              </div>
+              <div class="text-right">
+                {next && (
+                  <a href={href(next.id)} class="block p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40 transition">
+                    <span class="block text-xs text-slate-500">
+                      Next{next.chapter.id !== chapter!.id || props.kind === 'chapter' ? ` · Chapter ${next.chapter.number}` : ''} &rarr;
+                    </span>
+                    <span class="block font-semibold text-indigo-700">{next.title}</span>
+                  </a>
+                )}
+              </div>
+            </nav>
+          )}
+        </div>
+      </div>
+    </div>
+  )}
 </BaseLayout>
