@@ -4,17 +4,11 @@ import Card from '../components/Card.astro';
 import { getCollection } from 'astro:content';
 
 const rawResources = await getCollection('resources');
-const rawNotes = await getCollection('notes');
 const rawCourses = await getCollection('courses');
 
 const allItems = [
   ...rawResources.map(item => ({
     type: 'resource' as const,
-    slug: item.id,
-    data: item.data,
-  })),
-  ...rawNotes.map(item => ({
-    type: 'note' as const,
     slug: item.id,
     data: item.data,
   })),
@@ -42,7 +36,7 @@ const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
       Kasia's Learning Hub
     </h1>
     <p class="text-slate-600 text-base sm:text-lg">
-      My take on papers, courses, and technical notes.
+      My take on papers, courses, and certification prep.
     </p>
   </section>
 
@@ -70,9 +64,6 @@ const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
       </button>
       <button class="filter-tab px-3.5 py-1.5 rounded-full font-medium transition bg-slate-100 text-slate-700 hover:bg-slate-200" data-type="resource">
         Resources ({rawResources.length})
-      </button>
-      <button class="filter-tab px-3.5 py-1.5 rounded-full font-medium transition bg-slate-100 text-slate-700 hover:bg-slate-200" data-type="note">
-        Notes ({rawNotes.length})
       </button>
       <button class="filter-tab px-3.5 py-1.5 rounded-full font-medium transition bg-slate-100 text-slate-700 hover:bg-slate-200" data-type="course">
         Courses ({rawCourses.length})

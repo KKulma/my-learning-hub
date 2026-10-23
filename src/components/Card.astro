@@ -4,7 +4,7 @@ import TagPill from './TagPill.astro';
 interface Props {
   title: string;
   description: string;
-  type: 'resource' | 'note' | 'course';
+  type: 'resource' | 'course';
   slug: string;
   date: Date;
   tags?: string[];
@@ -32,11 +32,10 @@ const {
 } = Astro.props;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const entryUrl = `${base}/${type === 'resource' ? 'resources' : type === 'course' ? 'courses' : 'notes'}/${slug}`;
+const entryUrl = `${base}/${type === 'resource' ? 'resources' : 'courses'}/${slug}`;
 
 const typeBadges = {
   resource: { label: 'Resource', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  note: { label: 'Note', bg: 'bg-sky-50 text-sky-700 border-sky-200' },
   course: { label: 'Course', bg: 'bg-purple-50 text-purple-700 border-purple-200' },
 };
 

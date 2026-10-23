@@ -15,18 +15,6 @@ const resources = defineCollection({
   }),
 });
 
-const notes = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/notes' }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    tags: z.array(z.string()).default([]),
-    category: z.string().default('AI Notes'),
-    date: z.coerce.date(),
-    updatedDate: z.coerce.date().optional(),
-  }),
-});
-
 // IDs mirror the file path (minus extension and trailing /index) so URLs follow folders:
 //   courses/ml/index.md            -> "ml"
 //   courses/ml/01-intro/02-foo.md  -> "ml/01-intro/02-foo"
@@ -47,23 +35,25 @@ const courses = defineCollection({
     status: z.enum(['not-started', 'in-progress', 'completed']).default('in-progress'),
     tags: z.array(z.string()).default([]),
     date: z.coerce.date(),
+    url: z.url().optional(),
     certificateUrl: z.url().optional(),
   }),
 });
 
-// Everything inside a chapter folder: chapter intros (`<chapter>/index.md`) and note pages.
+// Course chapter content plus direct course pages (for courses such as RAG Time).
 const courseNotes = defineCollection({
   loader: glob({
-    pattern: '*/*/**/*.{md,mdx}',
+    pattern: ['*/*.{md,mdx}', '*/*/**/*.{md,mdx}'],
     base: './src/content/courses',
     generateId: pathId,
   }),
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
+    url: z.url().optional(),
     order: z.number().optional(), // overrides the numeric filename prefix
     tags: z.array(z.string()).default([]),
   }),
 });
 
-export const collections = { resources, notes, courses, courseNotes };
+export const collections = { resources, courses, courseNotes };
