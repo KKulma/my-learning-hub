@@ -5,6 +5,7 @@ provider: "LinkedIn"
 status: "completed"
 tags: ["ai-agent", "engineering", "certification"]
 date: 2026-10-20
+url: "https://www.linkedin.com/posts/rami-krispin_sql-ai-agents-in-production-new-course-activity-7445871339766398976-VbgT"
 certificateUrl: "https://www.linkedin.com/learning/certificates/f493341f040017ee1f35ab29fe89955168407858194a33bf16e09170f76cc05d?trk=share_certificate"
 ---
 
