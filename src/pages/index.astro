@@ -10,17 +10,17 @@ const rawCourses = await getCollection('courses');
 const allItems = [
   ...rawResources.map(item => ({
     type: 'resource' as const,
-    slug: item.slug,
+    slug: item.id,
     data: item.data,
   })),
   ...rawNotes.map(item => ({
     type: 'note' as const,
-    slug: item.slug,
+    slug: item.id,
     data: item.data,
   })),
   ...rawCourses.map(item => ({
     type: 'course' as const,
-    slug: item.slug,
+    slug: item.id,
     data: item.data,
   })),
 ].sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
@@ -39,10 +39,10 @@ const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
   <!-- Hero Section -->
   <section class="mb-10 text-center max-w-2xl mx-auto">
     <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
-      AI Knowledge & Learning Hub
+      Kasia's Learning Hub
     </h1>
     <p class="text-slate-600 text-base sm:text-lg">
-      Centralized summaries, papers, courses, and technical notes on AI, LLMs, and System Design.
+      My take on papers, courses, and technical notes.
     </p>
   </section>
 

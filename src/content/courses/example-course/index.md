@@ -8,14 +8,6 @@ date: 2026-01-01
 certificateUrl: "https://example.com/certificate"
 ---
 
-# Example Course Notes
+This is a placeholder multi-chapter course. Replace or delete the whole `example-course/` folder when adding your own courses.
 
-This is a placeholder dummy course note. Replace or delete this file when adding your own real course notes.
-
-## Modules & Progress
-- [x] Module 1: Introduction
-- [ ] Module 2: In progress...
-- [ ] Module 3: Upcoming
-
-## Key Learnings
-Document key concepts, exam tips, and cheat sheets here.
+Use this overview for **why** you're taking the course and your **overall takeaways**. The table of contents below is generated from the chapter folders.

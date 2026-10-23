@@ -6,7 +6,7 @@ This guide explains how to set up, run, and preview the **AI Learning Hub** on y
 
 ## Prerequisites
 
-* **Node.js**: Version 18.17.1 or higher (v20 or v22 recommended).
+* **Node.js**: Version 22.23.4 or higher (v24 recommended, matching CI).
   * Check your installed version:
     ```bash
     node -v

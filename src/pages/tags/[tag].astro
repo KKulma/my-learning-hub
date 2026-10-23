@@ -2,16 +2,34 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Card from '../../components/Card.astro';
 import { getCollection } from 'astro:content';
+import { getCourseTrees } from '../../lib/courses';
 
 export async function getStaticPaths() {
   const rawResources = await getCollection('resources');
   const rawNotes = await getCollection('notes');
   const rawCourses = await getCollection('courses');
+  const trees = await getCourseTrees();
+  const coursePages = [...trees.values()].flatMap((tree) => tree.pages);
 
   const allItems = [
-    ...rawResources.map(item => ({ type: 'resource' as const, slug: item.slug, data: item.data })),
-    ...rawNotes.map(item => ({ type: 'note' as const, slug: item.slug, data: item.data })),
-    ...rawCourses.map(item => ({ type: 'course' as const, slug: item.slug, data: item.data })),
+    ...rawResources.map(item => ({ type: 'resource' as const, slug: item.id, data: item.data })),
+    ...rawNotes.map(item => ({ type: 'note' as const, slug: item.id, data: item.data })),
+    ...rawCourses.map(item => ({ type: 'course' as const, slug: item.id, data: item.data })),
+    // Individual pages inside multi-chapter courses
+    ...coursePages.map(page => {
+      const course = trees.get(page.id.split('/')[0])!.course;
+      return {
+        type: 'course' as const,
+        slug: page.id,
+        data: {
+          title: page.title,
+          description: page.description ?? `${page.chapter.title} · ${course.data.title}`,
+          tags: page.entry.data.tags,
+          date: course.data.date,
+          category: course.data.title,
+        },
+      };
+    }),
   ];
 
   // Map of lowercase tag to original display tag & matching items

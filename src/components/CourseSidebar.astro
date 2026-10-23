@@ -1,0 +1,69 @@
+---
+import type { CourseTree } from '../lib/courses';
+
+interface Props {
+  tree: CourseTree;
+  currentId: string;
+}
+
+const { tree, currentId } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const href = (id: string) => `${base}/courses/${id}`;
+---
+
+<nav aria-label="Course contents" class="lg:sticky lg:top-6 flex flex-col gap-4">
+  <a
+    href={href(tree.course.id)}
+    class="block bg-white rounded-xl border border-slate-200 shadow-sm p-4 hover:border-indigo-300 transition"
+  >
+    <span class="text-xs font-semibold uppercase tracking-wide text-purple-700">Course</span>
+    <span class="block font-bold text-slate-900 leading-snug mt-1">{tree.course.data.title}</span>
+    <span class="block text-xs text-slate-500 mt-1">
+      {tree.chapters.length} chapters · {tree.pages.length} pages
+    </span>
+  </a>
+
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm divide-y divide-slate-100 overflow-hidden">
+    {tree.chapters.map((chapter) => {
+      const isOpen = currentId === chapter.id || chapter.pages.some((p) => p.id === currentId);
+      return (
+        <details open={isOpen} class="group">
+          <summary class="flex items-center justify-between gap-2 cursor-pointer list-none px-4 py-3 hover:bg-slate-50">
+            <span class={`text-sm font-semibold ${isOpen ? 'text-indigo-700' : 'text-slate-800'}`}>
+              {chapter.number}. {chapter.title}
+            </span>
+            <svg class="w-4 h-4 text-slate-400 transition group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <ul class="pb-2">
+            <li>
+              <a
+                href={href(chapter.id)}
+                aria-current={currentId === chapter.id ? 'page' : undefined}
+                class={`block pl-7 pr-4 py-1.5 text-xs uppercase tracking-wide ${currentId === chapter.id ? 'text-indigo-700 font-semibold' : 'text-slate-400 hover:text-slate-700'}`}
+              >
+                Chapter overview
+              </a>
+            </li>
+            {chapter.pages.map((page) => (
+              <li>
+                <a
+                  href={href(page.id)}
+                  aria-current={currentId === page.id ? 'page' : undefined}
+                  class={`block pl-7 pr-4 py-1.5 text-sm border-l-2 ml-4 transition ${
+                    currentId === page.id
+                      ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold'
+                      : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
+                  }`}
+                >
+                  {page.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      );
+    })}
+  </div>
+</nav>
