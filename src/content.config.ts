@@ -15,18 +15,6 @@ const resources = defineCollection({
   }),
 });
 
-const notes = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/notes' }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    tags: z.array(z.string()).default([]),
-    category: z.string().default('AI Notes'),
-    date: z.coerce.date(),
-    updatedDate: z.coerce.date().optional(),
-  }),
-});
-
 // IDs mirror the file path (minus extension and trailing /index) so URLs follow folders:
 //   courses/ml/index.md            -> "ml"
 //   courses/ml/01-intro/02-foo.md  -> "ml/01-intro/02-foo"
@@ -66,4 +54,4 @@ const courseNotes = defineCollection({
   }),
 });
 
-export const collections = { resources, notes, courses, courseNotes };
+export const collections = { resources, courses, courseNotes };

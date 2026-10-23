@@ -6,7 +6,7 @@ interface Props {
   description?: string;
 }
 
-const { title, description = "Kasia's take on papers, courses, and technical notes" } = Astro.props;
+const { title, description = "Kasia's take on papers, courses, and certification prep" } = Astro.props;
 const currentPath = Astro.url.pathname;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
@@ -48,15 +48,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
             ]}
           >
             Resources
-          </a>
-          <a
-            href={`${base}/notes`}
-            class:list={[
-              "px-3 py-1.5 rounded-lg transition",
-              currentPath.startsWith(`${base}/notes`) ? "bg-indigo-50 text-indigo-700 font-semibold" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-            ]}
-          >
-            Notes
           </a>
           <a
             href={`${base}/courses`}

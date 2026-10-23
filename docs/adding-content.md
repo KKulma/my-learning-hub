@@ -6,12 +6,11 @@ This guide describes the workflow for adding, organizing, and tagging new conten
 
 ## Content Organization
 
-All markdown and MDX files live in `src/content/` under three collections:
+All markdown and MDX files live in `src/content/` under two top-level collections:
 
 ```text
 src/content/
 ├── resources/    # Links, tools, papers, bookmarks with your commentary
-├── notes/        # Short & long-form technical notes, architecture writeups
 └── courses/      # Course curriculum tracking, certifications, and module notes
 ```
 
@@ -46,36 +45,7 @@ Summarize your thoughts or paste excerpts here.
 
 ---
 
-## 2. Adding a Technical Note (`src/content/notes/`)
-
-Use this for your own distilled guides, architectural patterns, cheatsheets, and deep dives.
-
-Create a new file, for example: `src/content/notes/vector-databases-comparison.md`:
-
-```markdown
----
-title: "Vector Databases: Pinecone vs Qdrant vs Milvus"
-description: "Comparison of managed and open-source vector databases for production RAG."
-tags: ["Vector DB", "RAG", "Database", "Architecture"]
-category: "Infrastructure"
-date: 2026-10-22
-updatedDate: 2026-10-25 # Optional
----
-
-# Vector Databases Comparison
-
-## Tradeoffs Overview
-Write your notes, embed code blocks, formulas, or mermaid diagrams.
-
-```python
-# Code blocks are automatically syntax highlighted
-import chromadb
-client = chromadb.Client()
-```
-
----
-
-## 3. Adding a Course / Certificate (`src/content/courses/`)
+## 2. Adding a Course / Certificate (`src/content/courses/`)
 
 Use this to log courses you are taking or certificate preparation (e.g. AWS, GCP, DeepLearning.AI). A course can be a **single file** (short courses) or a **folder with chapters and many pages of notes** (most courses).
 
@@ -216,6 +186,6 @@ certificateUrl: "https://example.com/badge" # Optional link when completed
 When you are on another laptop or away from your primary setup:
 1. Navigate to your repository on **GitHub.com** in any browser.
 2. Press the `.` (period) key on your keyboard. This opens the **github.dev web-based VS Code editor** directly in your browser.
-3. In `src/content/`, click **New File** (e.g. `src/content/notes/new-concept.md`).
+3. In `src/content/`, click **New File** (e.g. `src/content/resources/new-resource.md`).
 4. Paste the template, write your notes, and commit via the Source Control tab in the left sidebar.
 5. GitHub Actions will automatically compile and deploy your updates within ~40 seconds!
