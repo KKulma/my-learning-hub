@@ -50,13 +50,23 @@ export async function getCourseTrees(): Promise<Map<string, CourseTree>> {
   type RawChapter = { intro?: CourseNote; pages: CourseNote[] };
   const courseIds = new Set(courses.map((c) => c.id));
   const chaptersByCourse = new Map<string, Map<string, RawChapter>>();
+  const directPagesByCourse = new Map<string, CourseNote[]>();
 
   for (const note of notes) {
-    const [courseId, chapterName, ...rest] = note.id.split('/');
+    const parts = note.id.split('/');
+    if (parts.length < 2) continue;
+    const [courseId, chapterName, ...rest] = parts;
     if (!courseIds.has(courseId)) {
       throw new Error(
         `Course note "${note.id}" has no course overview. Create src/content/courses/${courseId}/index.md with the course metadata.`,
       );
+    }
+    const isIndex = note.filePath ? /[\\/]index\.(md|mdx)$/.test(note.filePath) : false;
+    if (parts.length === 2 && !isIndex) {
+      const pages = directPagesByCourse.get(courseId) ?? [];
+      pages.push(note);
+      directPagesByCourse.set(courseId, pages);
+      continue;
     }
     const chapters = chaptersByCourse.get(courseId) ?? new Map<string, RawChapter>();
     chaptersByCourse.set(courseId, chapters);
@@ -68,7 +78,10 @@ export async function getCourseTrees(): Promise<Map<string, CourseTree>> {
 
   const trees = new Map<string, CourseTree>();
   for (const course of courses) {
-    const rawChapters = [...(chaptersByCourse.get(course.id) ?? new Map<string, RawChapter>()).entries()]
+    const courseChapters = chaptersByCourse.get(course.id) ?? new Map<string, RawChapter>();
+    const directPages = directPagesByCourse.get(course.id);
+    if (directPages) courseChapters.set('journeys', { pages: directPages });
+    const rawChapters = [...courseChapters.entries()]
       .map(([name, ch]) => ({ name, ...ch, order: ch.intro?.data.order ?? prefixNumber(name) }))
       .sort(byOrder);
 

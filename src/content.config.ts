@@ -40,10 +40,10 @@ const courses = defineCollection({
   }),
 });
 
-// Everything inside a chapter folder: chapter intros (`<chapter>/index.md`) and note pages.
+// Course chapter content plus direct course pages (for courses such as RAG Time).
 const courseNotes = defineCollection({
   loader: glob({
-    pattern: '*/*/**/*.{md,mdx}',
+    pattern: ['*/*.{md,mdx}', '*/*/**/*.{md,mdx}'],
     base: './src/content/courses',
     generateId: pathId,
   }),
